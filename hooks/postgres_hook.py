@@ -2,7 +2,6 @@
 import ast
 import psycopg2
 import psycopg2.extensions
-from contextlib import closing
 
 from airflow.hooks.postgres_hook import PostgresHook as AirflowPostgresHook
 
@@ -46,6 +45,11 @@ class PostgresHook(AirflowPostgresHook):
             aws_secret_key['host'],
             aws_secret_key['port']
         ))
+
+        """
+        Expected dict format based on automatic AWS Secrets Manager's Lambda rotation function:
+        https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets-lambda-function-overview.html
+        """
         conn_args = dict(
             host=aws_secret_key['host'],
             user=aws_secret_key['username'],
