@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Plugin to store some usual PostgreSQL functions
+
+"""
+# pylint: disable=import-error,missing-docstring,too-few-public-methods
 from airflow.plugins_manager import AirflowPlugin
 
 from postgres_plugin.operators.postgres_operator import PostgresOperator

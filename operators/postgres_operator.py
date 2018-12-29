@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Execute some query on PostgreSQL database using Secrets Manager to retrieve database credentials.
+
+"""
+# pylint: disable=import-error,missing-docstring,too-few-public-methods
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
@@ -6,7 +12,8 @@ from postgres_plugin.hooks.postgres_hook import PostgresHook
 
 class PostgresOperator(BaseOperator):
     """
-    Executes sql code in a specific Postgres database Using AWS Secrets Manager Credential to authenticate
+    Executes sql code in a specific Postgres database
+    Using AWS Secrets Manager Credential to authenticate
 
     :param aws_secret_name: reference to a aws secrets manager name
     :type aws_secret_name: string
@@ -34,8 +41,8 @@ class PostgresOperator(BaseOperator):
             autocommit=False,
             parameters=None,
             database=None,
-            *args, **kwargs):
-        super(PostgresOperator, self).__init__(*args, **kwargs)
+            **kwargs):
+        super(PostgresOperator, self).__init__(**kwargs)
         self.sql = sql
         self.aws_conn_id = aws_conn_id
         self.aws_secret_name = aws_secret_name
@@ -43,7 +50,7 @@ class PostgresOperator(BaseOperator):
         self.parameters = parameters
         self.database = database
 
-    def execute(self, context):
+    def execute(self):
         self.log.info('Executing query: {}'.format(self.sql))
         self.hook = PostgresHook(aws_conn_id=self.aws_conn_id,
                                  aws_secret_name=self.aws_secret_name,
