@@ -24,7 +24,7 @@ import psycopg2.extensions
 from airflow.hooks.postgres_hook import PostgresHook as AirflowPostgresHook
 
 # Current plugin imports
-from postgres_plugin.hooks.aws_secrets_manager_hook import AwsSecretsManagerHook
+from aws_plugin.hooks.aws_secrets_manager_hook import AwsSecretsManagerHook
 
 
 class PostgresHook(AirflowPostgresHook):
