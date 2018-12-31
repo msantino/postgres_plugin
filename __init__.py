@@ -14,11 +14,14 @@ from postgres_plugin.operators.postgres_operator import PostgresToPostgresOperat
 from postgres_plugin.operators.postgres_to_s3_operator import PostgresToS3Operator
 from postgres_plugin.operators.postgres_to_s3_operator import S3ToPostgresOperator
 
+from postgres_plugin.operators.postgres_dump_operator import PostgresDumpOperator
+
 
 class PostgresPlugin(AirflowPlugin):
     name = "postgres_plugin"
     operators = [PostgresOperator,
                  PostgresToPostgresOperator,
                  PostgresToS3Operator,
-                 S3ToPostgresOperator]
+                 S3ToPostgresOperator,
+                 PostgresDumpOperator]
     hooks = [PostgresHook]
