@@ -9,8 +9,13 @@ from airflow.plugins_manager import AirflowPlugin
 from postgres_plugin.operators.postgres_operator import PostgresOperator
 from postgres_plugin.hooks.postgres_hook import PostgresHook
 
+from postgres_plugin.operators.postgres_to_s3_operator import PostgresToS3Operator
+from postgres_plugin.operators.postgres_to_s3_operator import S3ToPostgresOperator
+
 
 class PostgresPlugin(AirflowPlugin):
     name = "postgres_plugin"
     operators = [PostgresOperator]
-    hooks = [PostgresHook]
+    hooks = [PostgresHook,
+             PostgresToS3Operator,
+             S3ToPostgresOperator]
