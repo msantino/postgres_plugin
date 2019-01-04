@@ -8,7 +8,7 @@ from airflow.plugins_manager import AirflowPlugin
 
 from postgres_plugin.hooks.postgres_hook import PostgresWithSecretsManagerCredentialsHook
 
-from postgres_plugin.operators.postgres_operator import PostgresWithSecretsManagerCredentialsHook
+from postgres_plugin.operators.postgres_operator import PostgresWithSecretsManagerCredentialsOperator
 from postgres_plugin.operators.postgres_operator import PostgresToPostgresOperator
 
 from postgres_plugin.operators.postgres_to_s3_operator import PostgresToS3Operator
@@ -19,7 +19,7 @@ from postgres_plugin.operators.postgres_dump_operator import PostgresDumpOperato
 
 class PostgresPlugin(AirflowPlugin):
     name = "postgres_plugin"
-    operators = [PostgresWithSecretsManagerCredentialsHook,
+    operators = [PostgresWithSecretsManagerCredentialsOperator,
                  PostgresToPostgresOperator,
                  PostgresToS3Operator,
                  S3ToPostgresOperator,
