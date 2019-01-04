@@ -27,7 +27,7 @@ from airflow.hooks.postgres_hook import PostgresHook as AirflowPostgresHook
 from aws_plugin.hooks.aws_secrets_manager_hook import AwsSecretsManagerHook
 
 
-class PostgresHook(AirflowPostgresHook):
+class PostgresWithSecretsManagerCredentialsHook(AirflowPostgresHook):
     """
     Interact with Postgres Using AWS Secrets Manager Credential
 
@@ -44,7 +44,7 @@ class PostgresHook(AirflowPostgresHook):
     supports_autocommit = True
 
     def __init__(self, *args, **kwargs):
-        super(PostgresHook, self).__init__(*args, **kwargs)
+        super(PostgresWithSecretsManagerCredentialsHook, self).__init__(*args, **kwargs)
         self.schema = kwargs.pop("schema", None)
         self.aws_conn_id = kwargs.pop("aws_conn_id", None)
         self.aws_secret_name = kwargs.pop("aws_secret_name", None)

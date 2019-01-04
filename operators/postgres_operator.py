@@ -7,10 +7,10 @@ Execute some query on PostgreSQL database using Secrets Manager to retrieve data
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
-from postgres_plugin.hooks.postgres_hook import PostgresHook
+from postgres_plugin.hooks.postgres_hook import PostgresWithSecretsManagerCredentialsHook
 
 
-class PostgresOperator(BaseOperator):
+class PostgresWithSecretsManagerCredentialsOperator(BaseOperator):
     """
     Executes sql code in a specific Postgres database
     Using AWS Secrets Manager Credential to authenticate
@@ -42,7 +42,7 @@ class PostgresOperator(BaseOperator):
             parameters=None,
             database=None,
             **kwargs):
-        super(PostgresOperator, self).__init__(**kwargs)
+        super(PostgresWithSecretsManagerCredentialsOperator, self).__init__(**kwargs)
         self.sql = sql
         self.aws_conn_id = aws_conn_id
         self.aws_secret_name = aws_secret_name
@@ -50,11 +50,12 @@ class PostgresOperator(BaseOperator):
         self.parameters = parameters
         self.database = database
 
-    def execute(self):
+    def execute(self, context):
         self.log.info('Executing query: {}'.format(self.sql))
-        self.hook = PostgresHook(aws_conn_id=self.aws_conn_id,
-                                 aws_secret_name=self.aws_secret_name,
-                                 schema=self.database)
+        self.hook = PostgresWithSecretsManagerCredentialsHook(
+            aws_conn_id=self.aws_conn_id,
+            aws_secret_name=self.aws_secret_name,
+            schema=self.database)
         self.hook.run(self.sql, self.autocommit, parameters=self.parameters)
 
 
@@ -102,14 +103,16 @@ class PostgresToPostgresOperator(BaseOperator):
         self.log.info('Executing: ' + str(self.sql))
 
         # Source Postgres connection info (from AWS Secrets Manager)
-        src_pg = PostgresHook(aws_conn_id=self.src_postgres_conn['aws_conn_id'],
-                              aws_secret_name=self.src_postgres_conn['aws_secret_name'],
-                              schema=self.src_postgres_conn['database'])
+        src_pg = PostgresWithSecretsManagerCredentialsHook(
+            aws_conn_id=self.src_postgres_conn['aws_conn_id'],
+            aws_secret_name=self.src_postgres_conn['aws_secret_name'],
+            schema=self.src_postgres_conn['database'])
 
         # Destination Postgres connection info (from AWS Secrets Manager)
-        dest_pg = PostgresHook(aws_conn_id=self.dest_postgres_conn['aws_conn_id'],
-                               aws_secret_name=self.dest_postgres_conn['aws_secret_name'],
-                               schema=self.dest_postgres_conn['database'])
+        dest_pg = PostgresWithSecretsManagerCredentialsHook(
+            aws_conn_id=self.dest_postgres_conn['aws_conn_id'],
+            aws_secret_name=self.dest_postgres_conn['aws_secret_name'],
+            schema=self.dest_postgres_conn['database'])
 
         self.log.info("Transferring Postgres query results into other Postgres database.")
         conn = src_pg.get_conn()
