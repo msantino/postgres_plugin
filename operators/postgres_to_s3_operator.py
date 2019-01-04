@@ -4,12 +4,11 @@ import gzip
 from tempfile import NamedTemporaryFile
 
 from airflow.hooks.S3_hook import S3Hook
-from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.exceptions import AirflowException
 
-logging = logging.getLogger(__name__)
+from postgres_plugin import PostgresWithSecretsManagerCredentialsHook
 
 
 class PostgresToS3Operator(BaseOperator):
@@ -24,16 +23,16 @@ class PostgresToS3Operator(BaseOperator):
             sql,
             dest_s3_bucket_name,
             dest_s3_key_name,
+            src_postgres_conn,
             dest_s3_replace=False,
             dest_s3_encrypt=False,
-            src_postgres_conn_id='postgres_default',
             dest_s3_conn_id='postgres_default',
             delete_temporary_file=True,
             compress_file=False,
             *args, **kwargs):
         super(PostgresToS3Operator, self).__init__(*args, **kwargs)
         self.sql = sql
-        self.src_postgres_conn_id = src_postgres_conn_id
+        self.src_postgres_conn = src_postgres_conn
         self.dest_s3_conn_id = dest_s3_conn_id
         self.dest_s3_bucket_name = dest_s3_bucket_name
         self.dest_s3_key_name = dest_s3_key_name
@@ -46,7 +45,11 @@ class PostgresToS3Operator(BaseOperator):
     def execute(self, context):
         logging.info('Extracting query: ' + str(self.sql))
 
-        src_pgsql = PostgresHook(postgres_conn_id=self.src_postgres_conn_id)
+        src_pgsql = PostgresWithSecretsManagerCredentialsHook(
+            aws_conn_id=self.src_postgres_conn['aws_conn_id'],
+            aws_secret_name=self.src_postgres_conn['aws_secret_name'],
+            schema=self.src_postgres_conn['database']
+        )
         src_conn = src_pgsql.get_conn()
         cursor = src_conn.cursor()
 
@@ -98,7 +101,7 @@ class S3ToPostgresOperator(BaseOperator):
     @apply_defaults
     def __init__(
             self,
-            postgres_conn_id,
+            postgres_conn,
             dest_table_name,
             dest_table_columns,
             s3_conn_id,
@@ -108,7 +111,7 @@ class S3ToPostgresOperator(BaseOperator):
             pg_postoperator=None,
             *args, **kwargs):
         super(S3ToPostgresOperator, self).__init__(*args, **kwargs)
-        self.postgres_conn_id = postgres_conn_id
+        self.postgres_conn = postgres_conn
         self.dest_table_name = dest_table_name
         self.dest_table_columns = dest_table_columns
         self.pg_preoperator = pg_preoperator
@@ -142,7 +145,11 @@ class S3ToPostgresOperator(BaseOperator):
                 # Skip first row
                 next(file_read)
 
-                pgsql = PostgresHook(postgres_conn_id=self.postgres_conn_id)
+                pgsql = PostgresWithSecretsManagerCredentialsHook(
+                    aws_conn_id=self.postgres_conn['aws_conn_id'],
+                    aws_secret_name=self.postgres_conn['aws_secret_name'],
+                    schema=self.postgres_conn['database']
+                )
                 pgsql_conn = pgsql.get_conn()
                 pgsql_conn.autocommit = True
                 pgsql_cursor = pgsql_conn.cursor()
