@@ -59,7 +59,7 @@ class PostgresDumpOperator(BaseOperator):
     def execute(self, context):
 
         logging.info('Looking for AWS Secret Manager key')
-        secret_manager = AwsSecretsManagerHook(secret_name=self.secret_name)
+        secret_manager = AwsSecretsManagerHook(aws_secret_name=self.secret_name)
         self.aws_secret_key = ast.literal_eval(secret_manager.get_secret())
 
         # generate dumpfile from database
