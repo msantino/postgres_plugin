@@ -6,7 +6,8 @@ import hashlib
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
-from aws_plugin.hooks.aws_secrets_manager_hook import AwsSecretsManagerHook
+from aws_plugin import AwsSecretsManagerHook, AwsKmsHook
+
 from bash_plugin import BashHook
 from airflow.utils import apply_defaults
 from airflow.hooks.S3_hook import S3Hook
@@ -189,7 +190,7 @@ class PostgresDumpOperator(BaseOperator):
         encrypted_file = NamedTemporaryFile(prefix=self.task_id, delete=False)
 
         try:
-            AWSKMSHook(aws_kms_key_arn=self.aws_kms_key_arn,
+            AwsKmsHook(aws_kms_key_arn=self.aws_kms_key_arn,
                        aws_conn_id='default',
                        task_id=self.task_id)\
                 .encrypt_file(
