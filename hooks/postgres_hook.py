@@ -46,6 +46,7 @@ class PostgresWithSecretsManagerCredentialsHook(AirflowPostgresHook):
     def __init__(self, *args, **kwargs):
         super(PostgresWithSecretsManagerCredentialsHook, self).__init__(*args, **kwargs)
         self.schema = kwargs.pop("schema", None)
+        self.host = kwargs.pop("host", None)
         self.aws_conn_id = kwargs.pop("aws_conn_id", None)
         self.aws_secret_name = kwargs.pop("aws_secret_name", None)
 
@@ -61,14 +62,14 @@ class PostgresWithSecretsManagerCredentialsHook(AirflowPostgresHook):
 
         self.log.info('Got key to database [{}] on host [{}:{}]'.format(
             self.schema or aws_secret_key['dbname'],
-            aws_secret_key['host'],
+            self.host or aws_secret_key['host'],
             aws_secret_key['port']
         ))
 
         # Expected dict format based on automatic AWS Secrets Manager's Lambda rotation function:
         # https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets-lambda-function-overview.html
         conn_args = dict(
-            host=aws_secret_key['host'],
+            host=self.host or aws_secret_key['host'],
             user=aws_secret_key['username'],
             password=aws_secret_key['password'],
             dbname=self.schema or aws_secret_key['dbname'],
