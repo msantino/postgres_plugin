@@ -41,6 +41,7 @@ class PostgresWithSecretsManagerCredentialsOperator(BaseOperator):
             autocommit=False,
             parameters=None,
             database=None,
+            host=None,
             **kwargs):
         super(PostgresWithSecretsManagerCredentialsOperator, self).__init__(**kwargs)
         self.sql = sql
@@ -49,13 +50,16 @@ class PostgresWithSecretsManagerCredentialsOperator(BaseOperator):
         self.autocommit = autocommit
         self.parameters = parameters
         self.database = database
+        self.host = host
 
     def execute(self, context):
         self.log.info('Executing query: {}'.format(self.sql))
         self.hook = PostgresWithSecretsManagerCredentialsHook(
             aws_conn_id=self.aws_conn_id,
             aws_secret_name=self.aws_secret_name,
-            schema=self.database)
+            schema=self.database,
+            host=self.host
+        )
         self.hook.run(self.sql, self.autocommit, parameters=self.parameters)
 
 
@@ -106,13 +110,17 @@ class PostgresToPostgresOperator(BaseOperator):
         src_pg = PostgresWithSecretsManagerCredentialsHook(
             aws_conn_id=self.src_postgres_conn['aws_conn_id'],
             aws_secret_name=self.src_postgres_conn['aws_secret_name'],
-            schema=self.src_postgres_conn['database'])
+            schema=self.src_postgres_conn.pop("database", None),
+            host=self.src_postgres_conn.pop("host", None)
+        )
 
         # Destination Postgres connection info (from AWS Secrets Manager)
         dest_pg = PostgresWithSecretsManagerCredentialsHook(
             aws_conn_id=self.dest_postgres_conn['aws_conn_id'],
             aws_secret_name=self.dest_postgres_conn['aws_secret_name'],
-            schema=self.dest_postgres_conn['database'])
+            schema=self.src_postgres_conn.pop("database", None),
+            host=self.src_postgres_conn.pop("host", None)
+        )
 
         self.log.info("Transferring Postgres query results into other Postgres database.")
         conn = src_pg.get_conn()
